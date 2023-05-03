@@ -34,6 +34,8 @@ const products = productsFromServer.map((product) => {
 export const App = () => {
   const [filteredByOwner, setFilteredByOwner] = useState(0);
   const [query, setQuery] = useState('');
+  const [filteredByCategory, setFilteredByCategory] = useState([]);
+
   const filterByOwner = userId => setFilteredByOwner(userId);
 
   const visibleProduct = products.filter((product) => {
@@ -44,8 +46,13 @@ export const App = () => {
     }
 
     if (query) {
-      isFilterSelected = isFilterSelected
-      && product.name.toLowerCase().includes(query.toLowerCase());
+      isFilterSelected = product.name
+        .toLowerCase()
+        .includes(query.toLowerCase());
+    }
+
+    if (filteredByCategory.length) {
+      isFilterSelected = filteredByCategory.includes(product.categoryId);
     }
 
     return isFilterSelected;
@@ -56,6 +63,18 @@ export const App = () => {
   const handleReset = () => {
     setQuery('');
     setFilteredByOwner(0);
+    setFilteredByCategory([]);
+  };
+
+  const handleFilterByCategory = (categoriesId) => {
+    setFilteredByCategory((previousCategories) => {
+      if (previousCategories.includes(categoriesId)) {
+        return previousCategories
+          .filter(categoryId => categoriesId !== categoryId);
+      }
+
+      return [...previousCategories, categoriesId];
+    });
   };
 
   return (
@@ -125,6 +144,7 @@ export const App = () => {
                 href="#/"
                 data-cy="AllCategories"
                 className="button is-success mr-6 is-outlined"
+                onClick={() => setFilteredByCategory([])}
               >
                 All
               </a>
@@ -133,8 +153,11 @@ export const App = () => {
                 <a
                   key={category.id}
                   data-cy="Category"
-                  className="button mr-2 my-1 is-info"
+                  className={classNames('button mr-2 my-1', {
+                    'is-info': filteredByCategory.includes(category.id),
+                  })}
                   href="#/"
+                  onClick={() => handleFilterByCategory(category.id)}
                 >
                   {category.title}
                 </a>
